@@ -36,14 +36,13 @@ const ProductPickerDialog = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      fetchProducts();
-    }
+    fetchProducts();
+    // eslint-disable-next-line
   }, [open]);
 
   useEffect(() => {
     fetchProducts();
-    console.log(products);
+    // eslint-disable-next-line
   }, [searchTerm]);
 
   const handleToggleProduct = (productId) => {

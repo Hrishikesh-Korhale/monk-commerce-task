@@ -1,5 +1,3 @@
-import logo from "./logo.svg";
-import "./App.css";
 import ProductList from "./Components/ProductList";
 import { Box } from "@mui/material";
 

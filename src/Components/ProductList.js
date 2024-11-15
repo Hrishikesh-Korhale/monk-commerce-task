@@ -3,18 +3,15 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import {
   Box,
   Button,
-  Grid,
   IconButton,
   TextField,
   Typography,
   Select,
   MenuItem,
   InputAdornment,
-  Checkbox,
   Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import ProductPickerDialog from "./ProductPicker";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
