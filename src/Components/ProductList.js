@@ -1,30 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import {
-  Box,
-  Button,
-  IconButton,
-  TextField,
-  Typography,
-  Select,
-  MenuItem,
-  InputAdornment,
-  Divider,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import { Box, Button, Typography } from "@mui/material";
+
 import ProductPickerDialog from "./ProductPicker";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+
+import Product from "./Product";
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
+  const newProduct = {
+    instanceId: new Date().getTime() + Math.random(),
+    id: null,
+    title: "",
+    variants: [],
+    discount: 0,
+    discountType: "Percentage",
+    showDiscountFields: false,
+    showVariants: false,
+  };
+  const [products, setProducts] = useState([newProduct]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState({});
+  const [editingInstanceId, setEditingInstanceId] = useState(null);
 
-  const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
+
+  const handleEditProduct = (instanceId) => {
+    setEditingInstanceId(instanceId);
+    setDialogOpen(true);
+  };
+
+  const handleAddEmptyItem = () => {
+    setProducts((prevProducts) => {
+      return [...prevProducts, newProduct];
+    });
+  };
 
   const handleAddItems = (items) => {
     const newProducts = Object.keys(items).map((productId) => {
@@ -50,8 +59,18 @@ const ProductList = () => {
       };
     });
 
-    setProducts((prevProducts) => [...prevProducts, ...newProducts]);
+    setProducts((prevProducts) => {
+      // Replace the product being edited if applicable
+      const updatedProducts = prevProducts.filter(
+        (product) => product.instanceId !== editingInstanceId
+      );
+
+      // Add new products to the list
+      return [...updatedProducts, ...newProducts];
+    });
+
     setSelectedProducts({});
+    setEditingInstanceId(null); // Reset editing state
     setDialogOpen(false);
   };
 
@@ -119,157 +138,18 @@ const ProductList = () => {
           {(provided) => (
             <Box {...provided.droppableProps} ref={provided.innerRef}>
               {products.map((product, index) => (
-                <Draggable
+                <Product
                   key={index}
-                  draggableId={index.toString()}
                   index={index}
-                >
-                  {(provided) => (
-                    <Box
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                      }}
-                    >
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
-                      >
-                        <IconButton {...provided.dragHandleProps}>
-                          <DragIndicatorIcon />
-                        </IconButton>
-                        <Typography>{index + 1}.</Typography>
-                        <TextField
-                          variant="outlined"
-                          placeholder="Product Name"
-                          size="small"
-                          value={product.title}
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleOpenDialog()}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                        {product.showDiscountFields ? (
-                          <>
-                            <TextField
-                              variant="outlined"
-                              label="Discount"
-                              size="small"
-                              type="number"
-                              value={product.discount}
-                              onChange={(e) =>
-                                applyDiscount(product.id, e.target.value)
-                              }
-                            />
-                            <Select
-                              variant="outlined"
-                              size="small"
-                              value={product.discountType}
-                              onChange={(e) =>
-                                changeDiscountType(product.id, e.target.value)
-                              }
-                            >
-                              <MenuItem value="Percentage">Percentage</MenuItem>
-                              <MenuItem value="Fixed">Flat</MenuItem>
-                            </Select>
-                          </>
-                        ) : (
-                          <Button
-                            variant="contained"
-                            sx={{
-                              textTransform: "none",
-                              fontWeight: 550,
-                              backgroundColor: "#007555",
-                            }}
-                            onClick={() =>
-                              toggleDiscountFields(product.instanceId)
-                            }
-                          >
-                            Add Discount
-                          </Button>
-                        )}
-                        <IconButton
-                          onClick={() =>
-                            handleRemoveProduct(product.instanceId)
-                          }
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      </Box>
-                      {product.variants.length > 1 && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            mt: 1,
-                          }}
-                        >
-                          <Button
-                            variant="text"
-                            sx={{ textTransform: "none" }}
-                            size="small"
-                            onClick={() => toggleVariants(product.instanceId)}
-                            startIcon={
-                              product.showVariants ? (
-                                <ExpandLessIcon />
-                              ) : (
-                                <ExpandMoreIcon />
-                              )
-                            }
-                          >
-                            {product.showVariants
-                              ? "Hide Variants"
-                              : "Show Variants"}
-                          </Button>
-                        </Box>
-                      )}
-
-                      {product.showVariants && (
-                        <Box sx={{ mt: 1, ml: 5 }}>
-                          {product.variants.map((variant) => (
-                            <Box
-                              key={variant.id}
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 2,
-                                mt: 1,
-                              }}
-                            >
-                              <IconButton>
-                                <DragIndicatorIcon />
-                              </IconButton>
-                              <TextField
-                                value={variant.title}
-                                size="small"
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    borderRadius: "20px", // Apply 20px border radius
-                                  },
-                                }}
-                              />
-
-                              <IconButton>
-                                <CloseIcon />
-                              </IconButton>
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                      <Divider sx={{ mt: 2 }} />
-                    </Box>
-                  )}
-                </Draggable>
+                  product={product}
+                  setProducts={setProducts}
+                  handleEditProduct={handleEditProduct}
+                  toggleDiscountFields={toggleDiscountFields}
+                  handleRemoveProduct={handleRemoveProduct}
+                  applyDiscount={applyDiscount}
+                  changeDiscountType={changeDiscountType}
+                  toggleVariants={toggleVariants}
+                />
               ))}
               {provided.placeholder}
             </Box>
@@ -281,7 +161,7 @@ const ProductList = () => {
         <Button
           variant="outlined"
           size="large"
-          onClick={handleOpenDialog}
+          onClick={() => handleAddEmptyItem()}
           sx={{
             borderColor: "#007555",
             color: "#007555",

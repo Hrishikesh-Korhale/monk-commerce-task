@@ -116,8 +116,13 @@ const ProductPickerDialog = ({
     setSearchTerm(event.target.value);
   };
 
+  const handleClose = () => {
+    onClose()
+    setSearchTerm('')
+  }
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <Box
         sx={{
           display: "flex",
@@ -127,7 +132,7 @@ const ProductPickerDialog = ({
       >
         <DialogTitle>Select Products</DialogTitle>
         <Box>
-          <IconButton onClick={onClose}>
+          <IconButton onClick={handleClose}>
             <CloseIcon sx={{ color: "#000000CC" }} />
           </IconButton>
         </Box>
@@ -258,7 +263,7 @@ const ProductPickerDialog = ({
           product(s) selected
         </Typography>
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           variant="outlined"
           sx={{
             color: "grey.600",
