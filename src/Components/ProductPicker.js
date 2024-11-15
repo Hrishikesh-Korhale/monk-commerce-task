@@ -94,12 +94,14 @@ const ProductPickerDialog = ({
 
   const fetchProducts = async (search = searchTerm, page = 1, limit = 5) => {
     setLoading(true);
+    const apiKey = process.env.REACT_APP_API_KEY;
+
     try {
       const response = await axios.get(
         `https://stageapi.monkcommerce.app/task/products/search?search=${search}&page=${page}&limit=${limit}`,
         {
           headers: {
-            "x-api-key": "72njgfa948d9aS7gs5",
+            "x-api-key": apiKey,
           },
         }
       );
