@@ -20,6 +20,7 @@ import Variants from "./Variants";
 
 const Product = ({
   product,
+  products,
   setProducts,
   index,
   handleEditProduct,
@@ -99,9 +100,13 @@ const Product = ({
                 Add Discount
               </Button>
             )}
-            <IconButton onClick={() => handleRemoveProduct(product.instanceId)}>
-              <CloseIcon />
-            </IconButton>
+            {products?.length > 1 && (
+              <IconButton
+                onClick={() => handleRemoveProduct(product.instanceId)}
+              >
+                <CloseIcon />
+              </IconButton>
+            )}
           </Box>
           {product.variants.length > 1 && (
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
@@ -119,7 +124,7 @@ const Product = ({
             </Box>
           )}
 
-          <Variants product={product} setProducts={setProducts}/>
+          <Variants product={product} setProducts={setProducts} />
           <Divider sx={{ mt: 2 }} />
         </Box>
       )}

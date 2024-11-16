@@ -33,6 +33,7 @@ const ProductList = () => {
     setProducts((prevProducts) => {
       return [...prevProducts, newProduct];
     });
+    console.log("Products length:", products.length); // Check the length
   };
 
   const handleAddItems = (items) => {
@@ -60,13 +61,23 @@ const ProductList = () => {
     });
 
     setProducts((prevProducts) => {
-      // Replace the product being edited if applicable
-      const updatedProducts = prevProducts.filter(
-        (product) => product.instanceId !== editingInstanceId
+      // Find the index of the product being edited
+      const editingIndex = prevProducts.findIndex(
+        (product) => product.instanceId === editingInstanceId
       );
 
-      // Add new products to the list
-      return [...updatedProducts, ...newProducts];
+      // Clone the current list of products
+      const updatedProducts = [...prevProducts];
+
+      if (editingIndex !== -1) {
+        // Replace the product at the original position with new products
+        updatedProducts.splice(editingIndex, 1, ...newProducts);
+      } else {
+        // If no editing, just add the new products at the end
+        updatedProducts.push(...newProducts);
+      }
+
+      return updatedProducts;
     });
 
     setSelectedProducts({});
@@ -131,7 +142,7 @@ const ProductList = () => {
   };
 
   return (
-    <Box sx={{ p: 2, maxWidth: "50%" }}>
+    <Box sx={{ p: 2, maxWidth: "800px" }}>
       <Typography variant="h6">Add Products</Typography>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="droppable" type="group">
@@ -142,6 +153,7 @@ const ProductList = () => {
                   key={index}
                   index={index}
                   product={product}
+                  products={products}
                   setProducts={setProducts}
                   handleEditProduct={handleEditProduct}
                   toggleDiscountFields={toggleDiscountFields}

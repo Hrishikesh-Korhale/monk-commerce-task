@@ -19,6 +19,7 @@ import {
   IconButton,
   Box,
   CircularProgress,
+  Skeleton,
   InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -34,16 +35,64 @@ const ProductPickerDialog = ({
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
+    if (open) {
+      setProducts([]); // Reset products on dialog open
+      setPage(1); // Reset page
+      setHasMore(true); // Reset hasMore
+      fetchProducts(searchTerm, 1);
+    }
     // eslint-disable-next-line
   }, [open]);
 
   useEffect(() => {
-    fetchProducts();
+    if (page > 1) {
+      fetchProducts(searchTerm, page);
+    }
     // eslint-disable-next-line
-  }, [searchTerm]);
+  }, [page]);
+
+  const fetchProducts = async (
+    search = searchTerm,
+    currentPage = page,
+    limit = 10
+  ) => {
+    if (!hasMore || loadingMore) return;
+
+    currentPage === 1 ? setLoading(true) : setLoadingMore(true);
+
+    const apiKey = process.env.REACT_APP_API_KEY;
+
+    try {
+      const response = await axios.get(
+        `https://stageapi.monkcommerce.app/task/products/search?search=${search}&page=${currentPage}&limit=${limit}`,
+        {
+          headers: {
+            "x-api-key": apiKey,
+          },
+        }
+      );
+
+      if (response.data.length > 0) {
+        setProducts((prevProducts) => [...prevProducts, ...response.data]);
+        setHasMore(response.data.length === limit); // Check if there's more data
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      currentPage === 1 ? setLoading(false) : setLoadingMore(false);
+    }
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
   const handleToggleProduct = (productId) => {
     setSelectedProducts((prevSelected) => {
@@ -91,35 +140,23 @@ const ProductPickerDialog = ({
     });
   };
 
-  const fetchProducts = async (search = searchTerm, page = 1, limit = 5) => {
-    setLoading(true);
-    const apiKey = process.env.REACT_APP_API_KEY;
+  const handleScroll = (event) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.target;
 
-    try {
-      const response = await axios.get(
-        `https://stageapi.monkcommerce.app/task/products/search?search=${search}&page=${page}&limit=${limit}`,
-        {
-          headers: {
-            "x-api-key": apiKey,
-          },
-        }
-      );
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
+    // Check if scrolled to 80% of the dialog content
+    if (
+      scrollTop + clientHeight >= scrollHeight - 100 &&
+      hasMore &&
+      !loadingMore
+    ) {
+      setPage((prevPage) => prevPage + 1);
     }
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
   const handleClose = () => {
-    onClose()
-    setSearchTerm('')
-  }
+    onClose();
+    setSearchTerm("");
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -137,7 +174,8 @@ const ProductPickerDialog = ({
           </IconButton>
         </Box>
       </Box>
-      <DialogContent dividers>
+
+      <DialogContent dividers onScroll={handleScroll}>
         <TextField
           placeholder="Search product"
           variant="outlined"
@@ -156,51 +194,54 @@ const ProductPickerDialog = ({
           }}
         />
         <Divider />
+
         {loading ? (
           <Box
             sx={{ display: "flex", justifyContent: "center", mt: 2, my: 10 }}
           >
             <CircularProgress sx={{ color: "#007555" }} />
           </Box>
-        ) : products == null ? (
-          <Box sx={{ textAlign: "center", my: 4 }}>
-            <Typography variant="body1" color="textSecondary">
-              No products found. Please try a different search.
-            </Typography>
-          </Box>
         ) : (
           <List>
-            {products &&
-              products.map((product) => (
-                <React.Fragment key={product.id}>
-                  <ListItem
-                    button
-                    onClick={() => handleToggleProduct(product.id)}
-                    sx={{ pl: 0 }}
-                  >
-                    <ListItemIcon>
-                      <Checkbox
-                        edge="start"
-                        checked={!!selectedProducts[product.id]}
-                        tabIndex={-1}
-                        disableRipple
-                        sx={{
+            {products.map((product) => (
+              <React.Fragment key={product.id}>
+                <ListItem
+                  button
+                  onClick={() => handleToggleProduct(product.id)}
+                  sx={{ pl: 0 }}
+                >
+                  <ListItemIcon>
+                    <Checkbox
+                      edge="start"
+                      checked={!!selectedProducts[product.id]}
+                      tabIndex={-1}
+                      disableRipple
+                      sx={{
+                        color: "#008060",
+                        "&.Mui-checked": {
                           color: "#008060",
-                          "&.Mui-checked": {
-                            color: "#008060",
-                          },
-                        }}
-                      />
-                    </ListItemIcon>
+                        },
+                      }}
+                    />
+                  </ListItemIcon>
+                  <ListItemAvatar>
+                    {/* <Avatar
+                      alt={product.title}
+                      src={product.image.src}
+                      loading="lazy"
+                      sx={{ width: 40, height: 40 }}
+                    /> */}
                     <ListItemAvatar>
-                      <Avatar src={product.image.src} alt={product.title} />
+                      <Avatar>{product.title?.charAt(0).toUpperCase()}</Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary={product.title} />
-                  </ListItem>
-                  <Divider />
-                  {product.variants.map((variant) => (
+                  </ListItemAvatar>
+
+                  <ListItemText primary={product.title} />
+                </ListItem>
+                <Divider />
+                {product.variants.map((variant) => (
+                  <div key={variant.id}>
                     <ListItem
-                      key={variant.id}
                       button
                       sx={{ pl: 6 }}
                       onClick={() =>
@@ -239,16 +280,31 @@ const ProductPickerDialog = ({
                             </Typography>
                             <Typography sx={{ textAlign: "right" }}>
                               {variant.inventory_quantity} available{" "}
-                              <span style={{ marginLeft: "8px" }}> </span>$
+                              <span style={{ marginLeft: "8px" }} />$
                               {variant.price}
                             </Typography>
                           </Box>
                         }
                       />
                     </ListItem>
-                  ))}
-                </React.Fragment>
-              ))}
+                    <Divider />
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+            {loadingMore && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  width: "100%",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Skeleton width="100%" height={80} animation="wave" />
+                <Skeleton width="100%" height={80} animation="wave" />
+              </Box>
+            )}
           </List>
         )}
       </DialogContent>
