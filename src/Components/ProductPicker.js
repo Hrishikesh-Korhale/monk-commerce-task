@@ -41,13 +41,13 @@ const ProductPickerDialog = ({
 
   useEffect(() => {
     if (open) {
-      setProducts([]); // Reset products on dialog open
-      setPage(1); // Reset page
-      setHasMore(true); // Reset hasMore
+      setProducts([]);
+      setPage(1);
+      setHasMore(true);
       fetchProducts(searchTerm, 1);
     }
     // eslint-disable-next-line
-  }, [open]);
+  }, [open, searchTerm]);
 
   useEffect(() => {
     if (page > 1) {

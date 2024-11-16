@@ -1,5 +1,5 @@
 import React from "react";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+// import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { Box, IconButton, TextField, MenuItem, Select } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -45,9 +45,9 @@ const Variants = ({ product, setProducts }) => {
               mt: 1,
             }}
           >
-            <IconButton>
+            {/* <IconButton>
               <DragIndicatorIcon />
-            </IconButton>
+            </IconButton> */}
             <TextField
               value={variant.title}
               size="small"

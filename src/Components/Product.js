@@ -35,15 +35,15 @@ const Product = ({
       {(provided) => (
         <Box
           ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
+          {...provided.draggableProps} // Applying draggableProps to the container
           sx={{
             mb: 2,
             p: 2,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <IconButton {...provided.dragHandleProps}>
+            {/* Only the drag handle (the icon) should be draggable */}
+            <IconButton {...provided.dragHandleProps} sx={{cursor: 'grab'}}>
               <DragIndicatorIcon />
             </IconButton>
             <Typography>{index + 1}.</Typography>
